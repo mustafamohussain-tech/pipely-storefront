@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,18 +14,37 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Cairo',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:100px}
-  .topbar{background:linear-gradient(120deg,var(--accent),var(--accent-dark));color:#fff;padding:18px 16px 24px;
+  .topbar{background:linear-gradient(120deg,var(--accent),var(--accent-dark));color:#fff;padding:16px 16px 22px;
     border-radius:0 0 24px 24px;box-shadow:0 12px 30px -14px var(--accent-glow)}
+  .topbar-row{display:flex;justify-content:space-between;align-items:center}
   .logo{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
   .logo .dot{width:9px;height:9px;background:#fff;border-radius:50%;}
-  .topbar p{font-size:12.5px;opacity:.9;margin-top:4px}
+  .topbar p{font-size:12px;opacity:.9;margin-top:4px}
+  .lang-btn{background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11.5px;font-weight:700;
+    padding:6px 12px;border-radius:9px;cursor:pointer;font-family:inherit}
+  .social-row{display:flex;gap:8px;margin-top:10px}
+  .social-ic{width:26px;height:26px;background:rgba(255,255,255,.18);border-radius:8px;display:flex;
+    align-items:center;justify-content:center;font-size:13px;text-decoration:none;color:#fff}
 
   .wrap{max-width:480px;margin:0 auto;padding:0 14px}
-  .status-msg{margin-top:16px;text-align:center;font-size:13px;color:var(--text-mute);padding:20px}
+  .toolbar{margin-top:14px;display:flex;gap:8px}
+  .search-box{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 13px;
+    font-size:12.5px;display:flex;align-items:center;gap:7px}
+  .search-box input{border:none;background:none;outline:none;font-family:inherit;font-size:12.5px;flex:1;color:var(--text)}
+  .track-link{font-size:11px;color:var(--accent-dark);font-weight:700;text-align:center;margin-top:10px;
+    display:block;text-decoration:none}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .cat-row{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
+  .cat-chip{white-space:nowrap;font-size:12px;font-weight:700;padding:7px 15px;border-radius:20px;
+    background:#fff;border:1px solid var(--line);color:var(--text-dim);cursor:pointer}
+  .cat-chip.on{background:var(--accent);color:#fff;border-color:transparent}
+  .sort-select{margin-top:10px;width:100%;padding:9px 12px;border-radius:11px;border:1px solid var(--line);
+    background:#fff;font-family:inherit;font-size:12px;color:var(--text-dim)}
+
+  .status-msg{margin-top:16px;text-align:center;font-size:13px;color:var(--text-mute);padding:20px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
   .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
-    box-shadow:0 8px 20px -14px rgba(0,0,0,.15);position:relative}
+    box-shadow:0 8px 20px -14px rgba(0,0,0,.15);position:relative;cursor:pointer}
   .pimg{height:100px;background:linear-gradient(135deg,#ece7f9,#f7f5fb);display:flex;align-items:center;
     justify-content:center;font-size:34px;overflow:hidden}
   .pimg img{width:100%;height:100%;object-fit:cover}
@@ -37,7 +56,10 @@
   .pprice{font-size:13px;font-weight:800;color:var(--accent-dark)}
   .addbtn{width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;border:none;
     font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .addbtn:disabled{background:var(--text-mute);cursor:default}
   .qty-badge{position:absolute;top:8px;left:8px;background:var(--green);color:#fff;font-size:10.5px;
+    font-weight:800;padding:2px 8px;border-radius:20px;z-index:2}
+  .oos-badge{position:absolute;top:8px;right:8px;background:var(--danger);color:#fff;font-size:9.5px;
     font-weight:800;padding:2px 8px;border-radius:20px;z-index:2}
 
   .cart-bar{position:fixed;bottom:16px;left:14px;right:14px;max-width:452px;margin:0 auto;
@@ -47,16 +69,31 @@
   .cart-l{font-size:12.5px;opacity:.9}
   .cart-r{font-size:14px;font-weight:800}
 
-  /* شاشة إتمام الطلب */
-  .checkout-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:10;overflow-y:auto;padding:16px}
+  .overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:10;overflow-y:auto;padding:16px}
   .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--accent-dark);
     background:#fff;border:1px solid var(--line);padding:9px 15px;border-radius:11px;margin-bottom:16px;cursor:pointer}
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;
     box-shadow:0 10px 25px -16px rgba(0,0,0,.15)}
   .sec-title{font-size:13.5px;font-weight:800;margin-bottom:12px}
-  .item-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12.5px;
-    border-bottom:1px solid var(--line)}
+
+  .pd-gallery{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
+  .pd-gallery img{width:100px;height:100px;border-radius:14px;object-fit:cover;flex-shrink:0;border:1px solid var(--line)}
+  .pd-name{font-size:17px;font-weight:800}
+  .pd-price{font-size:16px;font-weight:800;color:var(--accent-dark);margin-top:6px}
+  .pd-desc{font-size:13px;color:var(--text-dim);line-height:1.7;margin-top:10px}
+  .pd-stock{font-size:11.5px;margin-top:8px;font-weight:700}
+  .pd-qty-row{display:flex;align-items:center;gap:12px;margin-top:16px}
+  .qbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;
+    font-size:17px;font-weight:700;cursor:pointer}
+  .qval{font-size:15px;font-weight:800;min-width:24px;text-align:center}
+
+  .item-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:12.5px;
+    border-bottom:1px solid var(--line);gap:8px}
   .item-row:last-of-type{border-bottom:none}
+  .item-qty-ctl{display:flex;align-items:center;gap:6px}
+  .mini-qbtn{width:22px;height:22px;border-radius:6px;border:1px solid var(--line);background:#fff;
+    font-size:13px;cursor:pointer;line-height:1}
+  .rm-btn{color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;background:none;border:none;font-family:inherit}
   .total-row{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:2px solid var(--line)}
   .total-label{font-size:13px;font-weight:800}
   .total-val{font-size:16px;font-weight:800;color:var(--accent-dark)}
@@ -69,21 +106,44 @@
     color:#fff;border:none;padding:17px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;
     box-shadow:0 16px 30px -14px var(--accent-glow)}
   .submit-btn:disabled{opacity:.6;cursor:default}
+  .share-btn{width:100%;margin-top:10px;background:#25d366;color:#fff;border:none;padding:13px;
+    border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
   .msg{display:none;margin-top:12px;padding:12px;border-radius:12px;font-size:13px;text-align:center;font-weight:700}
   .msg.success{background:rgba(31,157,84,.1);color:var(--green);display:block}
   .msg.error{background:rgba(214,61,51,.1);color:var(--danger);display:block}
+  .order-code-box{text-align:center;padding:16px;background:rgba(124,92,255,.08);border-radius:14px;margin-top:12px}
+  .order-code{font-size:20px;font-weight:800;color:var(--accent-dark);letter-spacing:1px}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="wrap">
-    <div class="logo"><span class="dot"></span> Pipely</div>
-    <p>متجر أحمد للإلكترونيات — اطلب منتجك بسهولة</p>
+    <div class="topbar-row">
+      <div class="logo"><span class="dot"></span> Pipely</div>
+      <button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+    </div>
+    <p id="storeTagline">متجر أحمد للإلكترونيات — اطلب منتجك بسهولة</p>
+    <div class="social-row">
+      <a class="social-ic" href="#" target="_blank" title="Instagram">📷</a>
+      <a class="social-ic" href="#" target="_blank" title="Facebook">📘</a>
+    </div>
   </div>
 </div>
 
 <div class="wrap">
+  <div class="toolbar">
+    <div class="search-box">🔍 <input type="text" id="searchBox" placeholder="دوّر عن منتج..." oninput="applyFilters()"></div>
+  </div>
+  <a class="track-link" href="#" onclick="openTracking();return false;" id="trackLink">📦 تتبّع طلبك برمز الطلب</a>
+
+  <div class="cat-row" id="catRow"></div>
+  <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+    <option value="">الترتيب الافتراضي</option>
+    <option value="asc">السعر: من الأقل للأعلى</option>
+    <option value="desc">السعر: من الأعلى للأقل</option>
+  </select>
+
   <div id="statusMsg" class="status-msg">🔄 جارٍ تحميل المنتجات...</div>
   <div class="grid" id="productsGrid"></div>
 </div>
@@ -93,20 +153,34 @@
   <span class="cart-r" id="cartTotal">0 د.ع ‹ إتمام الطلب</span>
 </div>
 
-<!-- شاشة إتمام الطلب -->
-<div class="checkout-overlay" id="checkoutOverlay">
+<div class="overlay" id="productOverlay">
   <div class="wrap">
-    <div class="back" onclick="closeCheckout()">‹ رجوع للمتجر</div>
+    <div class="back" onclick="closeOverlay('productOverlay')">‹ رجوع للمتجر</div>
+    <div class="card">
+      <div class="pd-gallery" id="pdGallery"></div>
+      <div class="pd-name" id="pdName"></div>
+      <div class="pd-price" id="pdPrice"></div>
+      <div class="pd-stock" id="pdStock"></div>
+      <div class="pd-desc" id="pdDesc"></div>
+      <div class="pd-qty-row">
+        <button class="qbtn" onclick="changeDetailQty(-1)">-</button>
+        <span class="qval" id="pdQty">1</span>
+        <button class="qbtn" onclick="changeDetailQty(1)">+</button>
+      </div>
+      <button class="submit-btn" id="pdAddBtn" onclick="addDetailToCart()">🛒 أضف للسلة</button>
+      <button class="share-btn" onclick="shareProduct()">📤 شارك مع صديق (واتساب)</button>
+    </div>
+  </div>
+</div>
 
+<div class="overlay" id="checkoutOverlay">
+  <div class="wrap">
+    <div class="back" onclick="closeOverlay('checkoutOverlay')">‹ رجوع للمتجر</div>
     <div class="card">
       <div class="sec-title">🛒 ملخص طلبك</div>
       <div id="checkoutItems"></div>
-      <div class="total-row">
-        <span class="total-label">المجموع</span>
-        <span class="total-val" id="checkoutTotal">0 د.ع</span>
-      </div>
+      <div class="total-row"><span class="total-label">المجموع</span><span class="total-val" id="checkoutTotal">0 د.ع</span></div>
     </div>
-
     <div class="card">
       <div class="sec-title">📋 بياناتك</div>
       <label for="cName">الاسم الكامل</label>
@@ -116,21 +190,57 @@
       <label for="cAddress">العنوان (للتوصيل)</label>
       <textarea id="cAddress" rows="2" placeholder="المحافظة، المنطقة، أقرب نقطة دالّة..."></textarea>
       <label for="cNotes">ملاحظات (اختياري)</label>
-      <textarea id="cNotes" rows="2" placeholder="أي تفاصيل إضافية عن طلبك..."></textarea>
+      <textarea id="cNotes" rows="2"></textarea>
       <p class="hint">الدفع عند الاستلام — بنتواصل وياك لتأكيد الطلب</p>
     </div>
-
     <button class="submit-btn" id="submitOrderBtn" onclick="submitOrder()">✅ تأكيد الطلب</button>
     <div class="msg" id="orderMsg"></div>
+    <div class="order-code-box" id="orderCodeBox" style="display:none;">
+      <div style="font-size:12px;color:var(--text-dim);">احتفظ برمز طلبك لتتبّعه لاحقًا</div>
+      <div class="order-code" id="orderCodeVal"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="trackOverlay">
+  <div class="wrap">
+    <div class="back" onclick="closeOverlay('trackOverlay')">‹ رجوع للمتجر</div>
+    <div class="card">
+      <div class="sec-title">📦 تتبّع طلبك</div>
+      <label for="trackCode">رمز الطلب</label>
+      <input type="text" id="trackCode" placeholder="مثال: P-0001">
+      <button class="submit-btn" onclick="trackOrder()">🔍 بحث</button>
+      <div id="trackResult"></div>
+    </div>
   </div>
 </div>
 
 <script>
-  // ⚠️ عدّل هذا الرابط ليطابق رابط الـWorker الحقيقي مالتك بالضبط
   const API_URL = 'https://pipely-api.mustafa-mo-hussain.workers.dev';
-
   let products = [];
-  let cart = {}; // { productId: { product, quantity } }
+  let cart = {};
+  let activeCategory = '';
+  let detailProduct = null;
+  let detailQty = 1;
+  let lang = (navigator.language || 'ar').startsWith('en') ? 'en' : 'ar';
+
+  const T = {
+    ar: { search: 'دوّر عن منتج...', track: '📦 تتبّع طلبك برمز الطلب', all: 'الكل', addToCart: '🛒 أضف للسلة',
+      outOfStock: '🚫 غير متوفر حاليًا', inStock: function (n) { return '✅ متوفر (' + n + ' قطعة)'; }, confirm: '✅ تأكيد الطلب' },
+    en: { search: 'Search products...', track: '📦 Track your order', all: 'All', addToCart: '🛒 Add to Cart',
+      outOfStock: '🚫 Out of stock', inStock: function (n) { return '✅ In stock (' + n + ')'; }, confirm: '✅ Confirm Order' },
+  };
+
+  function toggleLang() {
+    lang = lang === 'ar' ? 'en' : 'ar';
+    document.getElementById('htmlRoot').setAttribute('lang', lang);
+    document.getElementById('htmlRoot').setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    document.getElementById('langBtn').textContent = lang === 'ar' ? 'EN' : 'AR';
+    document.getElementById('searchBox').placeholder = T[lang].search;
+    document.getElementById('trackLink').textContent = T[lang].track;
+    renderCategories();
+    applyFilters();
+  }
 
   function loadProducts() {
     fetch(API_URL + '/products')
@@ -143,39 +253,69 @@
         }
         status.style.display = 'none';
         products = data.products;
-        renderProducts();
+        renderCategories();
+        applyFilters();
       })
-      .catch(function () {
-        document.getElementById('statusMsg').textContent = 'تعذر الاتصال بالمتجر، حاول لاحقًا';
-      });
+      .catch(function () { document.getElementById('statusMsg').textContent = 'تعذر الاتصال بالمتجر، حاول لاحقًا'; });
   }
 
-  function renderProducts() {
+  function renderCategories() {
+    const cats = Array.from(new Set(products.map(function (p) { return p.category; }).filter(Boolean)));
+    const row = document.getElementById('catRow');
+    if (cats.length === 0) { row.innerHTML = ''; return; }
+    let html = '<div class="cat-chip ' + (activeCategory === '' ? 'on' : '') + '" onclick="setCategory(\'\')">' + T[lang].all + '</div>';
+    cats.forEach(function (c) {
+      html += '<div class="cat-chip ' + (activeCategory === c ? 'on' : '') + '" onclick="setCategory(\'' + c + '\')">' + c + '</div>';
+    });
+    row.innerHTML = html;
+  }
+
+  function setCategory(c) { activeCategory = c; renderCategories(); applyFilters(); }
+
+  function applyFilters() {
+    const q = document.getElementById('searchBox').value.trim().toLowerCase();
+    const sortDir = document.getElementById('sortSelect').value;
+    let list = products.filter(function (p) {
+      const matchesSearch = !q || (p.name || '').toLowerCase().indexOf(q) !== -1;
+      const matchesCat = !activeCategory || p.category === activeCategory;
+      return matchesSearch && matchesCat;
+    });
+    if (sortDir === 'asc') list.sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
+    if (sortDir === 'desc') list.sort(function (a, b) { return (b.price || 0) - (a.price || 0); });
+    renderProducts(list);
+  }
+
+  function renderProducts(list) {
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = '';
-    products.forEach(function (p) {
+    (list || products).forEach(function (p) {
       const inCart = cart[p.id];
+      const outOfStock = p.stock !== null && p.stock <= 0;
       const card = document.createElement('div');
       card.className = 'pcard';
+      card.onclick = function () { openProductDetail(p.id); };
       card.innerHTML =
         (inCart ? '<span class="qty-badge">×' + inCart.quantity + '</span>' : '') +
+        (outOfStock ? '<span class="oos-badge">' + T[lang].outOfStock + '</span>' : '') +
         '<div class="pimg">' + (p.image ? '<img src="' + p.image + '" alt="">' : '📦') + '</div>' +
         '<div class="pinfo">' +
         '<div class="pname">' + (p.name || 'منتج') + '</div>' +
         '<div class="pdesc">' + (p.description || '') + '</div>' +
         '<div class="prow"><span class="pprice">' + Number(p.price || 0).toLocaleString() + ' د.ع</span>' +
-        '<button class="addbtn" onclick="addToCart(' + p.id + ')">+</button></div>' +
+        '<button class="addbtn" ' + (outOfStock ? 'disabled' : '') + ' onclick="event.stopPropagation();addToCart(' + p.id + ')">+</button></div>' +
         '</div>';
       grid.appendChild(card);
     });
   }
 
-  function addToCart(productId) {
+  function addToCart(productId, qty) {
+    qty = qty || 1;
     const product = products.find(function (p) { return p.id === productId; });
     if (!product) return;
+    if (product.stock !== null && product.stock <= 0) return;
     if (!cart[productId]) cart[productId] = { product: product, quantity: 0 };
-    cart[productId].quantity++;
-    renderProducts();
+    cart[productId].quantity += qty;
+    applyFilters();
     updateCartBar();
   }
 
@@ -190,26 +330,89 @@
     document.getElementById('cartTotal').textContent = total.toLocaleString() + ' د.ع ‹ إتمام الطلب';
   }
 
+  function openProductDetail(id) {
+    const p = products.find(function (x) { return x.id === id; });
+    if (!p) return;
+    detailProduct = p;
+    detailQty = 1;
+    document.getElementById('pdName').textContent = p.name;
+    document.getElementById('pdPrice').textContent = Number(p.price || 0).toLocaleString() + ' د.ع';
+    document.getElementById('pdDesc').textContent = p.description || '';
+    document.getElementById('pdQty').textContent = '1';
+    const stockEl = document.getElementById('pdStock');
+    const outOfStock = p.stock !== null && p.stock <= 0;
+    stockEl.style.color = outOfStock ? 'var(--danger)' : 'var(--green)';
+    stockEl.textContent = p.stock === null ? '' : (outOfStock ? T[lang].outOfStock : T[lang].inStock(p.stock));
+    document.getElementById('pdAddBtn').disabled = outOfStock;
+    document.getElementById('pdAddBtn').textContent = outOfStock ? T[lang].outOfStock : T[lang].addToCart;
+
+    const gallery = document.getElementById('pdGallery');
+    const imgs = (p.images && p.images.length) ? p.images : (p.image ? [p.image] : []);
+    gallery.innerHTML = imgs.length ? imgs.map(function (u) { return '<img src="' + u + '">'; }).join('') : '<div class="pimg" style="width:100%;border-radius:14px;">📦</div>';
+
+    document.getElementById('productOverlay').style.display = 'block';
+  }
+
+  function changeDetailQty(delta) {
+    detailQty = Math.max(1, detailQty + delta);
+    if (detailProduct && detailProduct.stock !== null) detailQty = Math.min(detailQty, detailProduct.stock);
+    document.getElementById('pdQty').textContent = detailQty;
+  }
+
+  function addDetailToCart() {
+    if (!detailProduct) return;
+    addToCart(detailProduct.id, detailQty);
+    closeOverlay('productOverlay');
+  }
+
+  function shareProduct() {
+    if (!detailProduct) return;
+    const text = 'شوف هذا المنتج بمتجر Pipely: ' + detailProduct.name + ' — ' + Number(detailProduct.price).toLocaleString() + ' د.ع';
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+
+  function closeOverlay(id) { document.getElementById(id).style.display = 'none'; }
+
   function openCheckout() {
     const itemsBox = document.getElementById('checkoutItems');
     itemsBox.innerHTML = '';
     let total = 0;
-    Object.values(cart).forEach(function (item) {
+    Object.keys(cart).forEach(function (pid) {
+      const item = cart[pid];
       const lineTotal = item.quantity * (item.product.price || 0);
       total += lineTotal;
       const row = document.createElement('div');
       row.className = 'item-row';
-      row.innerHTML = '<span>' + item.product.name + ' <span style="color:var(--text-mute);font-size:11px;">× ' + item.quantity + '</span></span>' +
-        '<span style="font-weight:700;">' + lineTotal.toLocaleString() + ' د.ع</span>';
+      row.innerHTML =
+        '<span>' + item.product.name + '</span>' +
+        '<div class="item-qty-ctl">' +
+        '<button class="mini-qbtn" onclick="changeCartQty(' + pid + ',-1)">-</button>' +
+        '<span>' + item.quantity + '</span>' +
+        '<button class="mini-qbtn" onclick="changeCartQty(' + pid + ',1)">+</button>' +
+        '</div>' +
+        '<span style="font-weight:700;">' + lineTotal.toLocaleString() + '</span>' +
+        '<button class="rm-btn" onclick="removeFromCart(' + pid + ')">🗑️</button>';
       itemsBox.appendChild(row);
     });
     document.getElementById('checkoutTotal').textContent = total.toLocaleString() + ' د.ع';
     document.getElementById('orderMsg').style.display = 'none';
+    document.getElementById('orderCodeBox').style.display = 'none';
+    document.getElementById('productOverlay').style.display = 'none';
     document.getElementById('checkoutOverlay').style.display = 'block';
   }
 
-  function closeCheckout() {
-    document.getElementById('checkoutOverlay').style.display = 'none';
+  function changeCartQty(pid, delta) {
+    if (!cart[pid]) return;
+    cart[pid].quantity += delta;
+    if (cart[pid].quantity <= 0) { delete cart[pid]; }
+    updateCartBar();
+    if (Object.keys(cart).length === 0) { closeOverlay('checkoutOverlay'); } else { openCheckout(); }
+  }
+
+  function removeFromCart(pid) {
+    delete cart[pid];
+    updateCartBar();
+    if (Object.keys(cart).length === 0) { closeOverlay('checkoutOverlay'); } else { openCheckout(); }
   }
 
   function submitOrder() {
@@ -221,51 +424,59 @@
     const btn = document.getElementById('submitOrderBtn');
 
     if (!name || !phone) {
-      msg.className = 'msg error';
-      msg.textContent = 'الرجاء تعبئة الاسم ورقم الهاتف';
-      msg.style.display = 'block';
+      msg.className = 'msg error'; msg.textContent = 'الرجاء تعبئة الاسم ورقم الهاتف'; msg.style.display = 'block';
       return;
     }
-
     const items = Object.values(cart).map(function (item) {
       return { productId: item.product.id, productName: item.product.name, price: item.product.price, quantity: item.quantity };
     });
 
-    btn.disabled = true;
-    btn.textContent = 'جارٍ الإرسال...';
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
 
     fetch(API_URL + '/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ customerName: name, phone: phone, address: address, notes: notes, items: items })
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        btn.disabled = false;
-        btn.textContent = '✅ تأكيد الطلب';
+        btn.disabled = false; btn.textContent = T[lang].confirm;
         if (data.result === 'success') {
-          msg.className = 'msg success';
-          msg.textContent = '🎉 تم استلام طلبك بنجاح! بنتواصل وياك قريبًا.';
-          msg.style.display = 'block';
-          cart = {};
-          updateCartBar();
-          setTimeout(function () {
-            closeCheckout();
-            renderProducts();
-          }, 2000);
+          msg.className = 'msg success'; msg.textContent = '🎉 تم استلام طلبك بنجاح!'; msg.style.display = 'block';
+          document.getElementById('orderCodeBox').style.display = 'block';
+          document.getElementById('orderCodeVal').textContent = data.orderCode || '';
+          cart = {}; updateCartBar();
+          setTimeout(function () { loadProducts(); }, 500);
         } else {
-          msg.className = 'msg error';
-          msg.textContent = 'حدث خطأ: ' + (data.error || 'حاول مرة ثانية');
-          msg.style.display = 'block';
+          msg.className = 'msg error'; msg.textContent = 'حدث خطأ: ' + (data.error || 'حاول مرة ثانية'); msg.style.display = 'block';
         }
       })
       .catch(function () {
-        btn.disabled = false;
-        btn.textContent = '✅ تأكيد الطلب';
-        msg.className = 'msg error';
-        msg.textContent = 'تعذر الاتصال، تأكد من الإنترنت وحاول مرة ثانية';
-        msg.style.display = 'block';
+        btn.disabled = false; btn.textContent = T[lang].confirm;
+        msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال، تأكد من الإنترنت'; msg.style.display = 'block';
       });
+  }
+
+  function openTracking() {
+    document.getElementById('trackResult').innerHTML = '';
+    document.getElementById('trackOverlay').style.display = 'block';
+  }
+
+  function trackOrder() {
+    const code = document.getElementById('trackCode').value.trim();
+    const box = document.getElementById('trackResult');
+    if (!code) return;
+    box.innerHTML = '<p class="hint">جارٍ البحث...</p>';
+    fetch(API_URL + '/track-order?code=' + encodeURIComponent(code))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.result !== 'success') { box.innerHTML = '<p class="msg error" style="display:block;">' + (data.error || 'ماكو طلب بهذا الرمز') + '</p>'; return; }
+        const o = data.order;
+        box.innerHTML =
+          '<div class="order-code-box"><div class="order-code">' + o.code + '</div>' +
+          '<div style="margin-top:8px;font-size:14px;font-weight:700;">' + o.status + '</div>' +
+          '<div style="margin-top:4px;font-size:12px;color:var(--text-dim);">' + Number(o.total).toLocaleString() + ' د.ع</div></div>';
+      })
+      .catch(function () { box.innerHTML = '<p class="msg error" style="display:block;">تعذر الاتصال بالخادم</p>'; });
   }
 
   loadProducts();
