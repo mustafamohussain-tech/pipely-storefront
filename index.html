@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pipely — متجر غراضي</title>
+<title>Pipely — متجر أحمد</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -14,9 +14,9 @@
     --text:#241f38;--text-dim:#6b6480;--text-mute:#9992ad;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Cairo',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:150px}
+  body{font-family:'Cairo',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:90px}
 
-  .tab-view{min-height:60vh}
+  .tab-view{min-height:0}
 
   .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
     display:flex;padding:9px 8px calc(9px + env(safe-area-inset-bottom));z-index:15;gap:4px;
@@ -272,7 +272,7 @@
       </nav>
       <button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
     </div>
-    <p id="storeTagline">متجر غراضي للإلكترونيات — اطلب منتجك بسهولة</p>
+    <p id="storeTagline">متجر أحمد للإلكترونيات — اطلب منتجك بسهولة</p>
   </div>
 </div>
 
@@ -313,7 +313,7 @@
 
   <div class="footer-bar">
     <div class="footer-brand"><span class="dot"></span> Pipely</div>
-    <div class="footer-tagline">متجر غراضي للإلكترونيات</div>
+    <div class="footer-tagline">متجر أحمد للإلكترونيات</div>
 
     <div class="footer-div"></div>
 
@@ -520,7 +520,7 @@
     ar: {
       search: 'دوّر عن منتج...', track: 'تتبّع طلبك برمز الطلب', all: 'الكل', addToCart: 'أضف للسلة',
       outOfStock: 'غير متوفر حاليًا', inStock: function (n) { return 'متوفر (' + n + ' قطعة)'; }, confirm: 'تأكيد الطلب',
-      tagline: 'متجر غراضي للإلكترونيات — اطلب منتجك بسهولة',
+      tagline: 'متجر أحمد للإلكترونيات — اطلب منتجك بسهولة',
       categoryLabel: 'الفئة', sortLabel: 'الترتيب',
       sortDefault: 'الترتيب الافتراضي', sortAsc: 'السعر: من الأقل للأعلى', sortDesc: 'السعر: من الأعلى للأقل',
       contactLabel: 'تواصل معنا', followLabel: 'تابعنا',
