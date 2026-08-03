@@ -401,7 +401,7 @@
   </div>
 </div>
 
-<div id="invoiceTemplate" style="position:absolute;top:0;left:-9999px;width:380px;background:#fff;padding:28px;font-family:'Cairo',Tahoma,sans-serif;direction:rtl;"></div>
+<div id="invoiceTemplate" style="position:fixed;top:0;left:0;width:380px;background:#fff;padding:28px;opacity:0.01;pointer-events:none;z-index:-1;font-family:'Cairo',Tahoma,sans-serif;direction:rtl;"></div>
 
 <!-- تبويب: تتبّع الطلب برمز -->
 <div class="tab-view" id="trackView" style="display:none;">
@@ -1295,6 +1295,18 @@
   }
 
   loadProducts();
+
+  // بعض المتصفحات "تسترجع" حالة الصفحة القديمة (بضمنها نوافذ مفتوحة) بدل
+  // ما تحمّلها من جديد فعليًا — هذا يسبب ظهور شاشة الدفع فجأة بعد تحديث
+  // الصفحة. هذا الاستماع يضمن إغلاق أي نافذة مفتوحة عند كل تحميل حقيقي.
+  window.addEventListener('pageshow', function () {
+    ['productOverlay', 'checkoutOverlay'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    switchTab('home');
+  });
 </script>
+
 </body>
 </html>
