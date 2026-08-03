@@ -6,6 +6,7 @@
 <title>Pipely — متجر أحمد</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
     --bg:#f7f5fb;--card:#fff;--line:#e7e1f2;
@@ -396,12 +397,20 @@
     <div class="order-code-box" id="orderCodeBox" style="display:none;">
       <div style="font-size:12px;color:var(--text-dim);">احتفظ برمز طلبك لتتبّعه لاحقًا</div>
       <div class="order-code" id="orderCodeVal"></div>
-      <button class="submit-btn" style="margin-top:14px;background:var(--accent-dark);" onclick="downloadInvoice()">تحميل الفاتورة (PDF)</button>
+      <button class="submit-btn" style="margin-top:14px;background:var(--accent-dark);" onclick="openInvoicePreview()">عرض الفاتورة</button>
     </div>
   </div>
 </div>
 
-<div id="invoiceTemplate" style="position:fixed;top:0;left:0;width:380px;background:#fff;padding:28px;opacity:0.01;pointer-events:none;z-index:-1;font-family:'Cairo',Tahoma,sans-serif;direction:rtl;"></div>
+<div class="overlay" id="invoiceOverlay">
+  <div class="wrap">
+    <div class="back" onclick="closeInvoicePreview()">‹ رجوع</div>
+    <div class="card">
+      <div id="invoiceTemplate"></div>
+      <button class="submit-btn" onclick="downloadInvoicePdf()" style="margin-top:14px;">تحميل PDF</button>
+    </div>
+  </div>
+</div>
 
 <!-- تبويب: تتبّع الطلب برمز -->
 <div class="tab-view" id="trackView" style="display:none;">
@@ -627,6 +636,15 @@
     if (sharedId && products.some(function (p) { return p.id === sharedId; })) {
       openProductDetail(sharedId);
     }
+  }
+
+  function openTrackedOrderIfAny() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('track');
+    if (!code) return;
+    switchTab('track');
+    document.getElementById('trackCode').value = code;
+    trackOrder();
   }
 
   function toggleFilterPanel() {
@@ -1132,7 +1150,10 @@
     }
   }
 
+  let isSubmittingOrder = false;
+
   function submitOrder() {
+    if (isSubmittingOrder) return;
     if (!isLoggedIn()) {
       switchTab('account');
       return;
@@ -1160,6 +1181,7 @@
       return { productId: item.product.id, productName: item.product.name, price: item.product.price, quantity: item.quantity };
     });
 
+    isSubmittingOrder = true;
     btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
 
     fetch(API_URL + '/order', {
@@ -1168,6 +1190,7 @@
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
+        isSubmittingOrder = false;
         btn.disabled = false; btn.textContent = T[lang].confirm;
         if (data.result === 'success') {
           msg.className = 'msg success'; msg.textContent = 'تم استلام طلبك بنجاح!'; msg.style.display = 'block';
@@ -1181,6 +1204,7 @@
         }
       })
       .catch(function () {
+        isSubmittingOrder = false;
         btn.disabled = false; btn.textContent = T[lang].confirm;
         msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال، تأكد من الإنترنت'; msg.style.display = 'block';
       });
@@ -1191,7 +1215,7 @@
     document.getElementById('trackOverlay').style.display = 'block';
   }
 
-  function downloadInvoice() {
+  function openInvoicePreview() {
     if (!lastCompletedOrder) return;
     const o = lastCompletedOrder;
     const dateStr = new Date().toLocaleDateString('ar-IQ');
@@ -1202,7 +1226,8 @@
     }).join('');
     const tpl = document.getElementById('invoiceTemplate');
     tpl.innerHTML =
-      '<div style="text-align:center;border-bottom:2px solid #7c5cff;padding-bottom:14px;margin-bottom:16px;">' +
+      '<div style="position:relative;text-align:center;border-bottom:2px solid #7c5cff;padding-bottom:14px;margin-bottom:16px;">' +
+      '<div id="invoiceQr" style="position:absolute;top:0;right:0;width:56px;height:56px;"></div>' +
       '<div style="font-size:18px;font-weight:800;color:#5f3fe0;">Pipely</div>' +
       '<div style="font-size:12px;color:#9992ad;margin-top:2px;">فاتورة شراء</div></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b6480;margin-bottom:14px;">' +
@@ -1217,21 +1242,27 @@
       '<div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:2px solid #7c5cff;font-weight:800;font-size:14px;">' +
       '<span>المجموع</span><span>' + Number(o.total).toLocaleString() + ' د.ع</span></div>';
 
-    tpl.style.opacity = '1';
-    tpl.style.zIndex = '5';
+    // رمز QR يوصّل مباشرة لصفحة تتبّع هذا الطلب بالذات
+    try {
+      const trackUrl = window.location.origin + window.location.pathname + '?track=' + encodeURIComponent(o.code);
+      new QRCode(document.getElementById('invoiceQr'), { text: trackUrl, width: 56, height: 56, colorDark: '#241f38' });
+    } catch (e) { /* لو تعذر توليد الـQR، الفاتورة تبقى تشتغل عادي بدونه */ }
 
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        html2pdf().from(tpl).set({
-          filename: 'فاتورة-' + o.code + '.pdf',
-          margin: 0,
-          html2canvas: { scale: 2 },
-        }).save().then(function () {
-          tpl.style.opacity = '0.01';
-          tpl.style.zIndex = '-1';
-        });
-      });
-    });
+    document.getElementById('invoiceOverlay').style.display = 'block';
+  }
+
+  function closeInvoicePreview() {
+    document.getElementById('invoiceOverlay').style.display = 'none';
+  }
+
+  function downloadInvoicePdf() {
+    if (!lastCompletedOrder) return;
+    const tpl = document.getElementById('invoiceTemplate');
+    html2pdf().from(tpl).set({
+      filename: 'فاتورة-' + lastCompletedOrder.code + '.pdf',
+      margin: 8,
+      html2canvas: { scale: 2 },
+    }).save();
   }
 
   function trackOrder() {
@@ -1276,6 +1307,8 @@
     return html;
   }
 
+  let historyOrders = [];
+
   function loadCustomerHistory() {
     const phone = document.getElementById('historyPhone').value.trim();
     const box = document.getElementById('historyResult');
@@ -1291,8 +1324,10 @@
           box.innerHTML = '<p class="hint">ماكو طلبات سابقة بهذا الرقم</p>';
           return;
         }
-        box.innerHTML = data.orders.map(function (o) {
-          return '<div class="item-row"><span style="font-weight:700;">' + o.code + '</span>' +
+        historyOrders = data.orders;
+        box.innerHTML = data.orders.map(function (o, idx) {
+          return '<div class="item-row" style="cursor:pointer;" onclick="openHistoryOrderDetail(' + idx + ')">' +
+            '<span style="font-weight:700;">' + o.code + '</span>' +
             '<span style="font-size:11px;color:var(--text-dim);">' + o.status.replace(/^\S+\s/, '') + '</span>' +
             '<span style="font-weight:700;">' + Number(o.total).toLocaleString() + ' د.ع</span></div>';
         }).join('');
@@ -1300,17 +1335,54 @@
       .catch(function () { box.innerHTML = '<p class="msg error" style="display:block;">تعذر الاتصال بالخادم</p>'; });
   }
 
+  function openHistoryOrderDetail(idx) {
+    const o = historyOrders[idx];
+    if (!o) return;
+    const itemsHtml = (o.items || []).map(function (i) {
+      return '<div class="item-row"><span>' + i.productName + '</span><span style="font-weight:700;">× ' + i.quantity + '</span></div>';
+    }).join('') || '<p class="hint">ماكو تفاصيل منتجات محفوظة لهذا الطلب</p>';
+
+    document.getElementById('trackResult').innerHTML =
+      '<div class="order-code-box"><div class="order-code">' + o.code + '</div>' +
+      '<div style="margin-top:8px;font-size:14px;font-weight:700;">' + o.status.replace(/^\S+\s/, '') + '</div>' +
+      '<div style="margin-top:4px;font-size:12px;color:var(--text-dim);">' + Number(o.total).toLocaleString() + ' د.ع</div></div>' +
+      '<div style="margin-top:14px;">' + itemsHtml + '</div>' +
+      '<button class="submit-btn" style="margin-top:14px;" onclick="openHistoryInvoice(' + idx + ')">عرض الفاتورة</button>';
+
+    switchTab('track');
+  }
+
+  function openHistoryInvoice(idx) {
+    const o = historyOrders[idx];
+    if (!o) return;
+    const session = getSession();
+    lastCompletedOrder = {
+      code: o.code,
+      name: (session && session.name) || '',
+      phone: (session && session.phone) || '',
+      address: o.address || '',
+      items: (o.items || []).map(function (i) { return { productName: i.productName, quantity: i.quantity, price: 0 }; }),
+      total: o.total,
+    };
+    openInvoicePreview();
+  }
+
   loadProducts();
+  openTrackedOrderIfAny();
 
   // بعض المتصفحات "تسترجع" حالة الصفحة القديمة (بضمنها نوافذ مفتوحة) بدل
   // ما تحمّلها من جديد فعليًا — هذا يسبب ظهور شاشة الدفع فجأة بعد تحديث
-  // الصفحة. هذا الاستماع يضمن إغلاق أي نافذة مفتوحة عند كل تحميل حقيقي.
+  // الصفحة. هذا الاستماع يضمن إغلاق أي نافذة مفتوحة عند كل تحميل حقيقي —
+  // إلا لو الصفحة انفتحت برابط ذكي (تتبّع طلب / مشاركة منتج)، وقتها نحترمه.
   window.addEventListener('pageshow', function () {
     ['productOverlay', 'checkoutOverlay'].forEach(function (id) {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
-    switchTab('home');
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get('track') && !params.get('product')) {
+      switchTab('home');
+    }
   });
 </script>
 
