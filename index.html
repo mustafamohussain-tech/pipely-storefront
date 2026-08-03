@@ -1379,7 +1379,7 @@
   // الصفحة. هذا الاستماع يضمن إغلاق أي نافذة مفتوحة عند كل تحميل حقيقي —
   // إلا لو الصفحة انفتحت برابط ذكي (تتبّع طلب / مشاركة منتج)، وقتها نحترمه.
   window.addEventListener('pageshow', function () {
-    ['productOverlay', 'checkoutOverlay'].forEach(function (id) {
+    ['productOverlay', 'checkoutOverlay', 'invoiceOverlay'].forEach(function (id) {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
