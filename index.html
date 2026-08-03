@@ -737,7 +737,7 @@
     const items = list || products;
     if (items.length === 0 && products.length > 0) {
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;">' +
-        '<div style="font-size:34px;">🔍</div>' +
+        '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="margin:0 auto;display:block;color:var(--text-mute);"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>' +
         '<div style="font-size:12.5px;color:var(--text-mute);margin-top:8px;">جرّب كلمة ثانية</div></div>';
       return;
     }
@@ -755,8 +755,8 @@
           (p.isNew && !outOfStock ? '<span class="new-badge"><svg class="badge-ic" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.6L19.5 10l-5.7 1.4L12 17l-1.8-5.6L4.5 10l5.7-1.4L12 3z" fill="currentColor"/></svg> جديد</span>' : '')) +
         '<div class="pimg">' + (p.image ? '<img src="' + p.image + '" alt="">' : '📦') + '</div>' +
         '<div class="pinfo">' +
-        '<div class="pname">' + (p.name || 'منتج') + '</div>' +
-        '<div class="pdesc">' + (p.description || '') + '</div>' +
+        '<div class="pname">' + escapeHtml_(p.name || 'منتج') + '</div>' +
+        '<div class="pdesc">' + escapeHtml_(p.description || '') + '</div>' +
         '<span class="pprice">' + Number(p.price || 0).toLocaleString() + ' د.ع</span>' +
         '<button class="addbtn" ' + (outOfStock ? 'disabled' : '') + ' onclick="event.stopPropagation();addToCart(' + p.id + ')">+ أضف للسلة</button>' +
         '</div>';
@@ -843,6 +843,18 @@
   // ===================== نظام التبويبات + الحساب/تسجيل الدخول =====================
 
   const SESSION_KEY = 'pipely_customer_session';
+
+  // أي نص يجي من طرف ثاني (وصف منتج، بيانات طلب سابق...) لازم يمرّ من هذي
+  // الدالة قبل ما يدخل الصفحة — يمنع حقن أكواد ضارة.
+  function escapeHtml_(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) { return null; }
@@ -998,7 +1010,7 @@
       return;
     }
     if (!isValidIraqiPhone(phone)) {
-      msg.className = 'msg error'; msg.textContent = '⚠️ أدخل رقم صحيح (07 + 11 رقم)'; msg.style.display = 'block';
+      msg.className = 'msg error'; msg.textContent = 'أدخل رقم صحيح (07 + 11 رقم)'; msg.style.display = 'block';
       return;
     }
 
@@ -1145,7 +1157,7 @@
       hint.textContent = 'رقم صحيح';
       hint.style.color = 'var(--green)';
     } else {
-      hint.textContent = '⚠️ يجب أن يبدأ بـ 07 ويتكون من 11 رقم';
+      hint.textContent = 'يجب أن يبدأ بـ 07 ويتكون من 11 رقم';
       hint.style.color = 'var(--danger)';
     }
   }
@@ -1170,7 +1182,7 @@
       return;
     }
     if (!isValidIraqiPhone(phone)) {
-      msg.className = 'msg error'; msg.textContent = '⚠️ رقم الهاتف غير صحيح — يجب أن يبدأ بـ 07 ويتكون من 11 رقم'; msg.style.display = 'block';
+      msg.className = 'msg error'; msg.textContent = 'رقم الهاتف غير صحيح — يجب أن يبدأ بـ 07 ويتكون من 11 رقم'; msg.style.display = 'block';
       return;
     }
     if (!address) {
@@ -1221,7 +1233,7 @@
     const dateStr = new Date().toLocaleDateString('ar-IQ');
     const itemsRows = o.items.map(function (i) {
       return '<tr><td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + (i.sku || '—') + '</td>' +
-        '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + i.productName + '</td>' +
+        '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + escapeHtml_(i.productName) + '</td>' +
         '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + i.quantity + '</td>' +
         '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + Number(i.price).toLocaleString() + '</td></tr>';
     }).join('');
@@ -1234,7 +1246,7 @@
       '<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b6480;margin-bottom:14px;">' +
       '<span>رقم الطلب: ' + o.code + '</span><span>التاريخ: ' + dateStr + '</span></div>' +
       '<div style="background:#f7f5fb;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.9;">' +
-      '<b>' + o.name + '</b><br>' + o.phone + (o.address ? '<br>' + o.address : '') + '</div>' +
+      '<b>' + escapeHtml_(o.name) + '</b><br>' + escapeHtml_(o.phone) + (o.address ? '<br>' + escapeHtml_(o.address) : '') + '</div>' +
       '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr>' +
       '<th style="text-align:right;border-bottom:2px solid #e7e1f2;padding:6px 4px;color:#6b6480;">الكود</th>' +
       '<th style="text-align:right;border-bottom:2px solid #e7e1f2;padding:6px 4px;color:#6b6480;">المنتج</th>' +
@@ -1317,7 +1329,7 @@
     const phone = document.getElementById('historyPhone').value.trim();
     const box = document.getElementById('historyResult');
     if (!isValidIraqiPhone(phone)) {
-      box.innerHTML = '<p class="msg error" style="display:block;">⚠️ أدخل رقم صحيح (07 + 11 رقم)</p>';
+      box.innerHTML = '<p class="msg error" style="display:block;">أدخل رقم صحيح (07 + 11 رقم)</p>';
       return;
     }
     box.innerHTML = '<p class="hint">جارٍ البحث...</p>';
@@ -1343,7 +1355,7 @@
     const o = historyOrders[idx];
     if (!o) return;
     const itemsHtml = (o.items || []).map(function (i) {
-      return '<div class="item-row"><span>' + i.productName + '</span><span style="font-weight:700;">× ' + i.quantity + '</span></div>';
+      return '<div class="item-row"><span>' + escapeHtml_(i.productName) + '</span><span style="font-weight:700;">× ' + i.quantity + '</span></div>';
     }).join('') || '<p class="hint">ماكو تفاصيل منتجات محفوظة لهذا الطلب</p>';
 
     document.getElementById('trackResult').innerHTML =
