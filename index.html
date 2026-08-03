@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pipely — متجر أحمد</title>
+<title>Pipely — متجر غراضي</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -213,6 +213,49 @@
     background-size:cover;background-position:center;border:3px solid #fff;box-shadow:0 8px 20px -10px rgba(124,92,255,.5)}
   .avatar-edit-badge{position:absolute;bottom:0;left:0;width:26px;height:26px;border-radius:50%;background:var(--accent);
     color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff}
+
+  /* ===================================================================
+     التكيّف مع شاشات الحاسوب — يفعّل تلقائيًا فوق 900px عرض الشاشة
+     =================================================================== */
+  .desktop-nav{display:none}
+
+  @media (min-width: 900px) {
+    body{padding-bottom:40px}
+
+    .wrap{max-width:1100px;padding:0 32px}
+    #homeView.wrap, #trackView .wrap, #historyView .wrap, #accountView .wrap{max-width:1100px}
+
+    .topbar{padding:18px 32px 26px}
+    .topbar-row{max-width:1100px;margin:0 auto}
+    #storeTagline{max-width:1100px;margin:4px auto 0}
+
+    .desktop-nav{display:flex;gap:6px}
+    .desktop-nav-btn{background:none;border:none;color:rgba(255,255,255,.85);font-size:13px;font-weight:700;
+      padding:9px 16px;border-radius:20px;cursor:pointer;font-family:inherit}
+    .desktop-nav-btn.on{background:rgba(255,255,255,.2);color:#fff}
+    .desktop-nav-btn:hover{background:rgba(255,255,255,.12)}
+
+    .bottom-nav{display:none}
+
+    .toolbar{max-width:520px}
+    .filter-panel{max-width:520px}
+
+    .grid{grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));gap:18px}
+    .pimg{height:170px}
+
+    .cart-bar{bottom:24px;max-width:400px;left:auto;right:32px;margin:0}
+
+    /* النوافذ (تفاصيل منتج، إتمام الطلب...) تصير بطاقة بمنتصف الشاشة، مو ملء الشاشة */
+    .overlay{background:rgba(36,31,56,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px}
+    .overlay .wrap{background:var(--bg);border-radius:22px;padding:28px;max-width:560px;
+      max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px -20px rgba(36,31,56,.35)}
+
+    .tab-view{min-height:auto}
+  }
+
+  @media (min-width: 1300px) {
+    .grid{grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))}
+  }
 </style>
 </head>
 <body>
@@ -221,9 +264,15 @@
   <div class="wrap">
     <div class="topbar-row">
       <div class="logo"><span class="dot"></span> Pipely</div>
+      <nav class="desktop-nav">
+        <button class="desktop-nav-btn on" id="dnavHome" onclick="switchTab('home')">الرئيسية</button>
+        <button class="desktop-nav-btn" id="dnavTrack" onclick="switchTab('track')">تتبّع الطلب</button>
+        <button class="desktop-nav-btn" id="dnavHistory" onclick="switchTab('history')">طلباتي</button>
+        <button class="desktop-nav-btn" id="dnavAccount" onclick="switchTab('account')">حسابي</button>
+      </nav>
       <button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
     </div>
-    <p id="storeTagline">متجر أحمد للإلكترونيات — اطلب منتجك بسهولة</p>
+    <p id="storeTagline">متجر غراضي للإلكترونيات — اطلب منتجك بسهولة</p>
   </div>
 </div>
 
@@ -264,7 +313,7 @@
 
   <div class="footer-bar">
     <div class="footer-brand"><span class="dot"></span> Pipely</div>
-    <div class="footer-tagline">متجر أحمد للإلكترونيات</div>
+    <div class="footer-tagline">متجر غراضي للإلكترونيات</div>
 
     <div class="footer-div"></div>
 
@@ -471,7 +520,7 @@
     ar: {
       search: 'دوّر عن منتج...', track: 'تتبّع طلبك برمز الطلب', all: 'الكل', addToCart: 'أضف للسلة',
       outOfStock: 'غير متوفر حاليًا', inStock: function (n) { return 'متوفر (' + n + ' قطعة)'; }, confirm: 'تأكيد الطلب',
-      tagline: 'متجر أحمد للإلكترونيات — اطلب منتجك بسهولة',
+      tagline: 'متجر غراضي للإلكترونيات — اطلب منتجك بسهولة',
       categoryLabel: 'الفئة', sortLabel: 'الترتيب',
       sortDefault: 'الترتيب الافتراضي', sortAsc: 'السعر: من الأقل للأعلى', sortDesc: 'السعر: من الأعلى للأقل',
       contactLabel: 'تواصل معنا', followLabel: 'تابعنا',
@@ -807,6 +856,7 @@
     ['home', 'track', 'history', 'account'].forEach(function (t) {
       document.getElementById(t + 'View').style.display = (t === tab) ? 'block' : 'none';
       document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('on', t === tab);
+      document.getElementById('dnav' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('on', t === tab);
     });
     if (tab === 'history') {
       const session = getSession();
