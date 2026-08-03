@@ -1217,13 +1217,19 @@
       '<div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:2px solid #7c5cff;font-weight:800;font-size:14px;">' +
       '<span>المجموع</span><span>' + Number(o.total).toLocaleString() + ' د.ع</span></div>';
 
+    tpl.style.opacity = '1';
+    tpl.style.zIndex = '5';
+
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         html2pdf().from(tpl).set({
           filename: 'فاتورة-' + o.code + '.pdf',
           margin: 0,
-          html2canvas: { scale: 2, windowWidth: 380 },
-        }).save();
+          html2canvas: { scale: 2 },
+        }).save().then(function () {
+          tpl.style.opacity = '0.01';
+          tpl.style.zIndex = '-1';
+        });
       });
     });
   }
