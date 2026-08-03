@@ -1178,7 +1178,7 @@
       return;
     }
     const items = Object.values(cart).map(function (item) {
-      return { productId: item.product.id, productName: item.product.name, price: item.product.price, quantity: item.quantity };
+      return { productId: item.product.id, productName: item.product.name, sku: item.product.sku || '', price: item.product.price, quantity: item.quantity };
     });
 
     isSubmittingOrder = true;
@@ -1220,7 +1220,8 @@
     const o = lastCompletedOrder;
     const dateStr = new Date().toLocaleDateString('ar-IQ');
     const itemsRows = o.items.map(function (i) {
-      return '<tr><td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + i.productName + '</td>' +
+      return '<tr><td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + (i.sku || '—') + '</td>' +
+        '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + i.productName + '</td>' +
         '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + i.quantity + '</td>' +
         '<td style="border-bottom:1px solid #e7e1f2;padding:8px 4px;">' + Number(i.price).toLocaleString() + '</td></tr>';
     }).join('');
@@ -1235,20 +1236,23 @@
       '<div style="background:#f7f5fb;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.9;">' +
       '<b>' + o.name + '</b><br>' + o.phone + (o.address ? '<br>' + o.address : '') + '</div>' +
       '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr>' +
+      '<th style="text-align:right;border-bottom:2px solid #e7e1f2;padding:6px 4px;color:#6b6480;">الكود</th>' +
       '<th style="text-align:right;border-bottom:2px solid #e7e1f2;padding:6px 4px;color:#6b6480;">المنتج</th>' +
       '<th style="text-align:right;border-bottom:2px solid #e7e1f2;padding:6px 4px;color:#6b6480;">الكمية</th>' +
       '<th style="text-align:right;border-bottom:2px solid #e7e1f2;padding:6px 4px;color:#6b6480;">السعر</th></tr></thead>' +
       '<tbody>' + itemsRows + '</tbody></table>' +
       '<div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:2px solid #7c5cff;font-weight:800;font-size:14px;">' +
-      '<span>المجموع</span><span>' + Number(o.total).toLocaleString() + ' د.ع</span></div>';
+      '<span>المجموع</span><span>' + Number(o.total).toLocaleString() + ' د.ع</span></div>' +
+      '<div style="margin-top:10px;font-size:10.5px;color:#9992ad;text-align:center;">طريقة الدفع: الدفع عند الاستلام</div>';
 
-    // رمز QR يوصّل مباشرة لصفحة تتبّع هذا الطلب بالذات
+    document.getElementById('invoiceOverlay').style.display = 'block';
+
+    // رمز QR يوصّل مباشرة لصفحة تتبّع هذا الطلب — يترسم بعد ما تصير النافذة
+    // مرئية فعليًا (مكتبة QR تحتاج مساحة حقيقية على الشاشة لترسم عليها)
     try {
       const trackUrl = window.location.origin + window.location.pathname + '?track=' + encodeURIComponent(o.code);
       new QRCode(document.getElementById('invoiceQr'), { text: trackUrl, width: 56, height: 56, colorDark: '#241f38' });
     } catch (e) { /* لو تعذر توليد الـQR، الفاتورة تبقى تشتغل عادي بدونه */ }
-
-    document.getElementById('invoiceOverlay').style.display = 'block';
   }
 
   function closeInvoicePreview() {
