@@ -285,7 +285,7 @@
 <div class="wrap" id="homeView">
   <div class="toolbar">
     <div class="search-box"><svg class="ic-inline" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> <input type="text" id="searchBox" placeholder="دوّر عن منتج..." oninput="applyFilters()" onfocus="applyFilters()" onblur="setTimeout(function(){document.getElementById('searchSuggest').style.display='none';},150)">
-      <span class="search-clear" id="searchClear" style="display:none;" onclick="clearSearch()">✕</span></div>
+      <span class="search-clear" id="searchClear" style="display:none;" onclick="clearSearch()"><svg viewBox="0 0 24 24" fill="none" width="14" height="14" style="vertical-align:-2px;display:inline-block;"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div>
     <div class="results-count" id="resultsCount" style="display:none;"></div>
     <div class="search-suggest" id="searchSuggest" style="display:none;"></div>
     <button class="filter-btn" id="filterBtn" onclick="toggleFilterPanel()">
@@ -700,7 +700,7 @@
       clear: "document.getElementById('sortSelect').value='';applyFilters();",
     });
     document.getElementById('filterBadgeRow').innerHTML = badges.map(function (b) {
-      return '<div class="filter-badge">' + b.label + ' <span onclick="' + b.clear + '">✕</span></div>';
+      return '<div class="filter-badge">' + b.label + ' <span onclick="' + b.clear + '"><svg viewBox="0 0 24 24" fill="none" width="14" height="14" style="vertical-align:-2px;display:inline-block;"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div>';
     }).join('');
     const dot = document.getElementById('filterDot');
     if (dot) dot.classList.toggle('show', badges.length > 0);
@@ -1012,7 +1012,7 @@
       if (secondsLeft > 0) {
         wrap.innerHTML = 'أعد الإرسال خلال <b style="color:var(--accent-dark);">' + mm + ':' + ss + '</b>';
       } else {
-        wrap.innerHTML = '<span style="cursor:pointer;color:var(--accent-dark);font-weight:700;" onclick="requestOTP()">إعادة إرسال الرمز</span>';
+        wrap.innerHTML = '<span style="cursor:pointer;color:var(--accent-dark);font-weight:700;" onclick="requestSignupOTP()">إعادة إرسال الرمز</span>';
         clearInterval(__resendInterval);
       }
     }
@@ -1135,7 +1135,10 @@
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone: phone, password: password }),
     })
-      .then(function (res) { return res.json(); })
+      .then(function (res) {
+        if (res.status === 429) throw new Error('RATE_LIMITED');
+        return res.json();
+      })
       .then(function (data) {
         btn.disabled = false; btn.textContent = 'تسجيل الدخول';
         if (data.result !== 'success') {
@@ -1148,9 +1151,13 @@
         document.getElementById('signinPassword').value = '';
         renderAccountView();
       })
-      .catch(function () {
+      .catch(function (err) {
         btn.disabled = false; btn.textContent = 'تسجيل الدخول';
-        msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال بالخادم'; msg.style.display = 'block';
+        if (err && err.message === 'RATE_LIMITED') {
+          msg.className = 'msg error'; msg.textContent = 'محاولات كثيرة جدًا — انتظر شوي وحاول مرة ثانية'; msg.style.display = 'block';
+        } else {
+          msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال بالخادم'; msg.style.display = 'block';
+        }
       });
   }
 
@@ -1294,11 +1301,6 @@
       });
   }
 
-  function openTracking() {
-    document.getElementById('trackResult').innerHTML = '';
-    document.getElementById('trackOverlay').style.display = 'block';
-  }
-
   function openInvoicePreview() {
     if (!lastCompletedOrder) return;
     const o = lastCompletedOrder;
@@ -1394,7 +1396,7 @@
       const isDone = i < currentIdx;
       const isActive = i === currentIdx;
       html += '<div class="tl-item">' +
-        '<div class="tl-dot-col"><div class="tl-dot ' + (isDone ? 'done' : (isActive ? 'active' : '')) + '">' + (isDone ? '✓' : (i + 1)) + '</div>' +
+        '<div class="tl-dot-col"><div class="tl-dot ' + (isDone ? 'done' : (isActive ? 'active' : '')) + '">' + (isDone ? '<svg viewBox="0 0 24 24" fill="none" width="13" height="13" style="vertical-align:-2px;display:inline-block;"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : (i + 1)) + '</div>' +
         (i < stages.length - 1 ? '<div class="tl-bar ' + (isDone ? 'done' : '') + '"></div>' : '') + '</div>' +
         '<div class="tl-text"><b>' + s.label + '</b></div></div>';
     });
