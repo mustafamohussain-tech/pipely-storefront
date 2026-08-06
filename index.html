@@ -193,12 +193,17 @@
   input,textarea{width:100%;padding:13px 17px;border:1.5px solid var(--line);border-radius:20px;
     font-size:14.5px;font-family:inherit;background:#fff;color:var(--text);transition:border-color .15s}
   input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .pw-field-wrap{position:relative;margin-bottom:13px;}
+  .pw-field-wrap input{margin-bottom:0;padding-left:44px;}
+  .pw-eye{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);
+    cursor:pointer;display:flex;align-items:center;}
+  .pw-eye:hover{color:var(--accent)}
   .otp-digits{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
   .auth-tabs{display:flex;gap:6px;background:var(--bg);border-radius:16px;padding:4px;margin-bottom:16px}
   .auth-tab{flex:1;background:none;border:none;padding:11px;border-radius:12px;font-size:12.5px;
     font-weight:700;color:var(--text-mute);cursor:pointer;font-family:inherit}
   .auth-tab.on{background:#fff;color:var(--accent-dark);box-shadow:0 4px 12px -6px rgba(124,92,255,.4)}
-  .otp-digit{width:52px;height:58px;text-align:center;font-size:22px;font-weight:800;padding:0;
+  .otp-digit,.forgot-otp-digit{width:52px;height:58px;text-align:center;font-size:22px;font-weight:800;padding:0;
     border:1.5px solid var(--line);border-radius:16px}
   .otp-digit:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,92,255,.15)}
   .hint{font-size:10.5px;color:var(--text-mute);margin-top:5px}
@@ -377,17 +382,12 @@
 <div class="overlay" id="checkoutOverlay">
   <div class="wrap">
     <div class="back" id="backBtn2" onclick="closeOverlay('checkoutOverlay')">‹ رجوع للمتجر</div>
-    <div class="stepper">
-      <div class="step done">✓</div><div class="step-line done"></div>
-      <div class="step done">✓</div><div class="step-line"></div>
-      <div class="step on">3</div>
-    </div>
-    <div class="card" style="position:sticky;top:8px;z-index:3;">
+    <div class="card" id="checkoutSummaryCard" style="position:sticky;top:8px;z-index:3;">
       <div class="sec-title" id="checkoutTitle">ملخص طلبك</div>
       <div id="checkoutItems"></div>
       <div class="total-row"><span class="total-label">المجموع</span><span class="total-val" id="checkoutTotal">0 د.ع</span></div>
     </div>
-    <div class="card">
+    <div class="card" id="checkoutDataCard">
       <div class="sec-title" id="dataTitle">بياناتك</div>
       <label for="cName" id="cNameLabel">الاسم الكامل</label>
       <input type="text" id="cName" placeholder="مثال: علي حسين">
@@ -406,6 +406,7 @@
       <div style="font-size:12px;color:var(--text-dim);">احتفظ برمز طلبك لتتبّعه لاحقًا</div>
       <div class="order-code" id="orderCodeVal"></div>
       <button class="submit-btn" style="margin-top:14px;background:var(--accent-dark);" onclick="openInvoicePreview()">عرض الفاتورة</button>
+      <button class="submit-btn" style="margin-top:10px;background:var(--bg);color:var(--accent-dark);border:1.5px solid var(--line);" onclick="closeOverlay('checkoutOverlay')">‹ رجوع للمتجر</button>
     </div>
   </div>
 </div>
@@ -415,7 +416,7 @@
     <div class="back" onclick="closeInvoicePreview()">‹ رجوع</div>
     <div class="card">
       <div id="invoiceTemplate"></div>
-      <button class="submit-btn" onclick="downloadInvoicePdf()" style="margin-top:14px;">تحميل PDF</button>
+      <button class="submit-btn" id="downloadPdfBtn" onclick="downloadInvoicePdf()" style="margin-top:14px;">تحميل PDF</button>
     </div>
   </div>
 </div>
@@ -464,7 +465,10 @@
           <label for="signupPhone">رقم الهاتف</label>
           <input type="tel" id="signupPhone" placeholder="07xxxxxxxxx" maxlength="11">
           <label for="signupPassword">كلمة مرور لحسابك</label>
-          <input type="password" id="signupPassword" placeholder="4 أحرف على الأقل">
+          <div class="pw-field-wrap">
+            <input type="password" id="signupPassword" placeholder="4 أحرف على الأقل">
+            <span class="pw-eye" onclick="togglePasswordVisibility('signupPassword', this)"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span>
+          </div>
           <p class="hint"><svg class="ic-inline" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> بعد تأكيد رمز واتساب مرة وحدة، تقدر تدخل بكلمة المرور دائمًا بدون رمز</p>
           <button class="submit-btn" onclick="requestSignupOTP()" id="requestOtpBtn">إنشاء حساب</button>
         </div>
@@ -488,8 +492,36 @@
         <label for="signinPhone">رقم الهاتف</label>
         <input type="tel" id="signinPhone" placeholder="07xxxxxxxxx" maxlength="11">
         <label for="signinPassword">كلمة المرور</label>
-        <input type="password" id="signinPassword" placeholder="كلمة مرور حسابك">
+        <div class="pw-field-wrap">
+          <input type="password" id="signinPassword" placeholder="كلمة مرور حسابك">
+          <span class="pw-eye" onclick="togglePasswordVisibility('signinPassword', this)"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span>
+        </div>
         <button class="submit-btn" onclick="customerSignin()" id="signinBtn">تسجيل الدخول</button>
+        <p class="hint" style="text-align:center;margin-top:10px;"><span style="color:var(--accent);cursor:pointer;font-weight:700;" onclick="openForgotPassword()">نسيت كلمة المرور؟</span></p>
+      </div>
+
+      <div id="forgotStep1" style="display:none;">
+        <label for="forgotPhone">رقم هاتفك</label>
+        <input type="tel" id="forgotPhone" placeholder="07xxxxxxxxx" maxlength="11">
+        <button class="submit-btn" onclick="requestPasswordResetOTP()" id="forgotRequestBtn">إرسال رمز التحقق</button>
+        <p class="hint" style="text-align:center;margin-top:10px;"><span style="color:var(--text-mute);cursor:pointer;" onclick="closeForgotPassword()">‹ رجوع لتسجيل الدخول</span></p>
+      </div>
+
+      <div id="forgotStep2" style="display:none;">
+        <div style="text-align:center;margin-bottom:6px;"><svg width="34" height="34" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><circle cx="12" cy="12" r="12" fill="#25d366"/><path d="M12 5.5a6.4 6.4 0 00-5.5 9.6L5.5 18.5l3.5-1a6.4 6.4 0 003-.8A6.4 6.4 0 1012 5.5z" fill="#fff"/></svg></div>
+        <p class="hint" style="margin-bottom:16px;text-align:center;">تحقق من واتسابك</p>
+        <div class="otp-digits" dir="ltr">
+          <input type="tel" class="forgot-otp-digit" maxlength="1" inputmode="numeric" data-idx="0" oninput="otpDigitInput(this,0,'.forgot-otp-digit',function(){})" onkeydown="otpDigitKeydown(event,0,'.forgot-otp-digit')">
+          <input type="tel" class="forgot-otp-digit" maxlength="1" inputmode="numeric" data-idx="1" oninput="otpDigitInput(this,1,'.forgot-otp-digit',function(){})" onkeydown="otpDigitKeydown(event,1,'.forgot-otp-digit')">
+          <input type="tel" class="forgot-otp-digit" maxlength="1" inputmode="numeric" data-idx="2" oninput="otpDigitInput(this,2,'.forgot-otp-digit',function(){})" onkeydown="otpDigitKeydown(event,2,'.forgot-otp-digit')">
+          <input type="tel" class="forgot-otp-digit" maxlength="1" inputmode="numeric" data-idx="3" oninput="otpDigitInput(this,3,'.forgot-otp-digit',function(){})" onkeydown="otpDigitKeydown(event,3,'.forgot-otp-digit')">
+        </div>
+        <label for="newPassword">كلمة المرور الجديدة</label>
+        <div class="pw-field-wrap">
+          <input type="password" id="newPassword" placeholder="4 أحرف على الأقل">
+          <span class="pw-eye" onclick="togglePasswordVisibility('newPassword', this)"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span>
+        </div>
+        <button class="submit-btn" onclick="confirmPasswordReset()">تأكيد كلمة المرور الجديدة</button>
       </div>
 
       <div id="loginMsg" class="msg" style="display:none;"></div>
@@ -976,28 +1008,120 @@
   let __pendingPhone = '';
   let __pendingPassword = '';
 
-  function otpDigitInput(el, idx) {
+  function openForgotPassword() {
+    document.getElementById('signinPanel').style.display = 'none';
+    document.getElementById('forgotStep1').style.display = 'block';
+    document.getElementById('forgotStep2').style.display = 'none';
+    document.getElementById('loginMsg').style.display = 'none';
+  }
+
+  function closeForgotPassword() {
+    document.getElementById('forgotStep1').style.display = 'none';
+    document.getElementById('forgotStep2').style.display = 'none';
+    document.getElementById('signinPanel').style.display = 'block';
+    document.getElementById('forgotPhone').value = '';
+    document.getElementById('newPassword').value = '';
+    clearOtpDigits('.forgot-otp-digit');
+  }
+
+  let __forgotPhone = '';
+  function requestPasswordResetOTP() {
+    const phone = document.getElementById('forgotPhone').value.trim();
+    const msg = document.getElementById('loginMsg');
+    const btn = document.getElementById('forgotRequestBtn');
+
+    if (!isValidIraqiPhone(phone)) {
+      msg.className = 'msg error'; msg.textContent = 'أدخل رقم صحيح (07 + 11 رقم)'; msg.style.display = 'block';
+      return;
+    }
+
+    __forgotPhone = phone;
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
+
+    fetch(API_URL + '/request-otp', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone }),
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        btn.disabled = false; btn.textContent = 'إرسال رمز التحقق';
+        if (data.result === 'success') {
+          msg.style.display = 'none';
+          document.getElementById('forgotStep1').style.display = 'none';
+          document.getElementById('forgotStep2').style.display = 'block';
+          clearOtpDigits('.forgot-otp-digit');
+        } else {
+          msg.className = 'msg error'; msg.textContent = data.error || 'تعذر إرسال الرمز'; msg.style.display = 'block';
+        }
+      })
+      .catch(function () {
+        btn.disabled = false; btn.textContent = 'إرسال رمز التحقق';
+        msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال بالخادم'; msg.style.display = 'block';
+      });
+  }
+
+  function confirmPasswordReset() {
+    const digits = document.querySelectorAll('.forgot-otp-digit');
+    const code = [].map.call(digits, function (d) { return d.value; }).join('');
+    const newPassword = document.getElementById('newPassword').value;
+    const msg = document.getElementById('loginMsg');
+
+    if (code.length < 4) {
+      msg.className = 'msg error'; msg.textContent = 'أكمل رمز التحقق (4 أرقام)'; msg.style.display = 'block';
+      return;
+    }
+    if (!newPassword || newPassword.length < 4) {
+      msg.className = 'msg error'; msg.textContent = 'كلمة المرور لازم تكون 4 أحرف على الأقل'; msg.style.display = 'block';
+      return;
+    }
+
+    fetch(API_URL + '/customer-reset-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: __forgotPhone, code: code, newPassword: newPassword }),
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.result !== 'success') {
+          msg.className = 'msg error'; msg.textContent = data.error || 'تعذّر إعادة التعيين'; msg.style.display = 'block';
+          clearOtpDigits('.forgot-otp-digit');
+          return;
+        }
+        saveSession({ name: data.name, phone: __forgotPhone, token: data.token });
+        closeForgotPassword();
+        renderAccountView();
+        alert('تم تحديث كلمة المرور بنجاح، وسجّلت دخولك تلقائيًا.');
+      })
+      .catch(function () {
+        msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال بالخادم'; msg.style.display = 'block';
+      });
+  }
+
+  function otpDigitInput(el, idx, sel, onComplete) {
+    sel = sel || '.otp-digit';
+    onComplete = onComplete || completeSignup;
     el.value = el.value.replace(/[^0-9]/g, '').slice(0, 1);
     if (el.value && idx < 3) {
-      const next = document.querySelector('.otp-digit[data-idx="' + (idx + 1) + '"]');
+      const next = document.querySelector(sel + '[data-idx="' + (idx + 1) + '"]');
       if (next) next.focus();
     }
     if (idx === 3 && el.value) {
-      const allDigits = document.querySelectorAll('.otp-digit');
-      if ([].every.call(allDigits, function (d) { return d.value; })) verifyOTP();
+      const allDigits = document.querySelectorAll(sel);
+      if ([].every.call(allDigits, function (d) { return d.value; })) onComplete();
     }
   }
 
-  function otpDigitKeydown(evt, idx) {
+  function otpDigitKeydown(evt, idx, sel) {
+    sel = sel || '.otp-digit';
     if (evt.key === 'Backspace' && !evt.target.value && idx > 0) {
-      const prev = document.querySelector('.otp-digit[data-idx="' + (idx - 1) + '"]');
+      const prev = document.querySelector(sel + '[data-idx="' + (idx - 1) + '"]');
       if (prev) { prev.focus(); prev.value = ''; }
     }
   }
 
-  function clearOtpDigits() {
-    document.querySelectorAll('.otp-digit').forEach(function (d) { d.value = ''; });
-    const first = document.querySelector('.otp-digit[data-idx="0"]');
+  function clearOtpDigits(sel) {
+    sel = sel || '.otp-digit';
+    document.querySelectorAll(sel).forEach(function (d) { d.value = ''; });
+    const first = document.querySelector(sel + '[data-idx="0"]');
     if (first) first.focus();
   }
 
@@ -1018,6 +1142,15 @@
     }
     render();
     __resendInterval = setInterval(function () { secondsLeft--; render(); }, 1000);
+  }
+
+  function togglePasswordVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    iconEl.innerHTML = isHidden
+      ? '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg>';
   }
 
   function switchAuthTab(tab) {
@@ -1152,14 +1285,49 @@
         renderAccountView();
       })
       .catch(function (err) {
-        btn.disabled = false; btn.textContent = 'تسجيل الدخول';
         if (err && err.message === 'RATE_LIMITED') {
-          msg.className = 'msg error'; msg.textContent = 'محاولات كثيرة جدًا — انتظر شوي وحاول مرة ثانية'; msg.style.display = 'block';
+          startLoginRateLimitCountdown_(msg, btn);
         } else {
+          btn.disabled = false; btn.textContent = 'تسجيل الدخول';
           msg.className = 'msg error'; msg.textContent = 'تعذر الاتصال بالخادم'; msg.style.display = 'block';
         }
       });
   }
+
+  // عداد تنازلي 60 ثانية لما يصير حظر مؤقت — نفس المبدأ بشاشة دخول الموظف
+  let __rateLimitInterval = null;
+  function startLoginRateLimitCountdown_(msgEl, btnEl) {
+    let secondsLeft = 60;
+    btnEl.disabled = true;
+    function render() {
+      msgEl.className = 'msg error';
+      msgEl.innerHTML = 'نسيت كلمة المرور؟ لا تشيل هم — انتظر ' + secondsLeft + ' ثانية وجرّب، أو <span style="color:var(--accent);cursor:pointer;font-weight:700;text-decoration:underline;" onclick="closeForgotWait_()">اضغط هنا لإعادة تعيينها</span>';
+      msgEl.style.display = 'block';
+      btnEl.textContent = 'انتظر (' + secondsLeft + ')';
+    }
+    render();
+    if (__rateLimitInterval) clearInterval(__rateLimitInterval);
+    __rateLimitInterval = setInterval(function () {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearInterval(__rateLimitInterval);
+        msgEl.style.display = 'none';
+        btnEl.disabled = false;
+        btnEl.textContent = 'تسجيل الدخول';
+        return;
+      }
+      render();
+    }, 1000);
+  }
+
+  function closeForgotWait_() {
+    if (__rateLimitInterval) clearInterval(__rateLimitInterval);
+    document.getElementById('signinBtn').disabled = false;
+    document.getElementById('signinBtn').textContent = 'تسجيل الدخول';
+    document.getElementById('loginMsg').style.display = 'none';
+    openForgotPassword();
+  }
+
 
   function closeOverlay(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -1198,6 +1366,12 @@
     document.getElementById('orderMsg').style.display = 'none';
     document.getElementById('orderCodeBox').style.display = 'none';
     document.getElementById('productOverlay').style.display = 'none';
+
+    // نعيد إظهار كل شي (لو كانت مخفية من طلب سابق ناجح)، حتى الزبون
+    // يقدر يسوي طلب جديد بشكل طبيعي بعد ما يرجع للمتجر
+    document.getElementById('checkoutSummaryCard').style.display = 'block';
+    document.getElementById('checkoutDataCard').style.display = 'block';
+    document.getElementById('submitOrderBtn').style.display = 'block';
 
     // الاسم والهاتف يتعبّون تلقائيًا من الجلسة المسجّلة، وتُقفل (ما يقدر يعدّلها)
     const session = getSession();
@@ -1290,6 +1464,13 @@
           lastCompletedOrder = { code: data.orderCode || '', name: name, phone: phone, address: address, items: items, total: data.total || 0 };
           cart = {}; updateCartBar();
           setTimeout(function () { loadProducts(); }, 500);
+
+          // بعد النجاح، نخفي ملخص الطلب ونموذج البيانات وزر التأكيد —
+          // يبقى بس رسالة النجاح ورمز الطلب وأزرار المتابعة، حتى ما يبان
+          // للزبون كإنه "لسه بنص الطلب" بعد ما خلص فعليًا.
+          document.getElementById('checkoutSummaryCard').style.display = 'none';
+          document.getElementById('checkoutDataCard').style.display = 'none';
+          document.getElementById('submitOrderBtn').style.display = 'none';
         } else {
           msg.className = 'msg error'; msg.textContent = 'حدث خطأ: ' + (data.error || 'حاول مرة ثانية') + (data.debug ? ' [' + data.debug + ']' : ''); msg.style.display = 'block';
         }
@@ -1333,6 +1514,20 @@
 
     document.getElementById('invoiceOverlay').style.display = 'block';
 
+    // نعطّل زر التحميل مؤقتًا (يبان رمادي) لين تخلص الفاتورة كاملة الرسم
+    // (بضمنها QR) — يمنع تحميل PDF ناقص لو ضغط الزبون بسرعة قبل ما يكتمل
+    const dlBtn = document.getElementById('downloadPdfBtn');
+    dlBtn.disabled = true;
+    dlBtn.style.opacity = '0.5';
+    dlBtn.style.cursor = 'not-allowed';
+    dlBtn.textContent = 'جارٍ التحضير...';
+    setTimeout(function () {
+      dlBtn.disabled = false;
+      dlBtn.style.opacity = '1';
+      dlBtn.style.cursor = 'pointer';
+      dlBtn.textContent = 'تحميل PDF';
+    }, 800);
+
     // رمز QR يوصّل مباشرة لصفحة تتبّع هذا الطلب — يترسم بعد ما تصير النافذة
     // مرئية فعليًا (مكتبة QR تحتاج مساحة حقيقية على الشاشة لترسم عليها)
     try {
@@ -1347,6 +1542,8 @@
 
   function downloadInvoicePdf() {
     if (!lastCompletedOrder) return;
+    const dlBtn = document.getElementById('downloadPdfBtn');
+    if (dlBtn && dlBtn.disabled) return; // حماية إضافية — الفاتورة لسه ما خلصت الرسم
     const tpl = document.getElementById('invoiceTemplate');
     html2pdf().from(tpl).set({
       filename: 'فاتورة-' + lastCompletedOrder.code + '.pdf',
