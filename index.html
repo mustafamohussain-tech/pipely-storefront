@@ -394,8 +394,22 @@
       <label for="cPhone" id="cPhoneLabel">رقم الهاتف</label>
       <input type="tel" id="cPhone" placeholder="07xxxxxxxxx" maxlength="11" inputmode="numeric" oninput="validatePhone()">
       <p class="hint" id="phoneHint"></p>
-      <label for="cAddress" id="cAddressLabel">العنوان (للتوصيل) *إلزامي</label>
-      <textarea id="cAddress" rows="3" placeholder="المحافظة، القضاء، الحي، اسم الشارع، أقرب نقطة دالّة، رقم الدار إن وجد..."></textarea>
+      <label for="cRegion" id="cRegionLabel">المنطقة *إلزامي</label>
+      <select id="cRegion">
+        <option value="" disabled selected>اختر المنطقة</option>
+        <option value="الكرادة">الكرادة</option>
+        <option value="المنصور">المنصور</option>
+        <option value="الجادرية">الجادرية</option>
+        <option value="زيونة">زيونة</option>
+        <option value="الأعظمية">الأعظمية</option>
+        <option value="الدورة">الدورة</option>
+        <option value="الشعلة">الشعلة</option>
+        <option value="الحرية">الحرية</option>
+        <option value="بغداد الجديدة">بغداد الجديدة</option>
+        <option value="أخرى">منطقة أخرى</option>
+      </select>
+      <label for="cAddress" id="cAddressLabel">العنوان التفصيلي (للتوصيل) *إلزامي</label>
+      <textarea id="cAddress" rows="3" placeholder="الحي، اسم الشارع، أقرب نقطة دالّة، رقم الدار إن وجد..."></textarea>
       <label for="cNotes" id="cNotesLabel">ملاحظات (اختياري)</label>
       <textarea id="cNotes" rows="2"></textarea>
       <p class="hint" id="paymentHint">الدفع عند الاستلام — بنتواصل وياك لتأكيد الطلب</p>
@@ -851,6 +865,14 @@
     if (!p) return;
     detailProduct = p;
     detailQty = 1;
+
+    // نسجّل المشاهدة بالخلفية (لتحليلات "أكثر منتج يُشاهَد") — لا ننتظر
+    // الرد ولا نوقف عرض المنتج لو فشل التسجيل، هذا تتبّع غير حرج.
+    fetch(API_URL + '/track-product-view', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id }),
+    }).catch(function () {});
+
     document.getElementById('pdName').textContent = p.name;
     document.getElementById('pdPrice').textContent = Number(p.price || 0).toLocaleString() + ' د.ع';
     document.getElementById('pdDesc').textContent = p.description || '';
@@ -1425,6 +1447,7 @@
     }
     const name = document.getElementById('cName').value.trim();
     const phone = document.getElementById('cPhone').value.trim();
+    const region = document.getElementById('cRegion').value;
     const address = document.getElementById('cAddress').value.trim();
     const notes = document.getElementById('cNotes').value.trim();
     const msg = document.getElementById('orderMsg');
@@ -1436,6 +1459,10 @@
     }
     if (!isValidIraqiPhone(phone)) {
       msg.className = 'msg error'; msg.textContent = 'رقم الهاتف غير صحيح — يجب أن يبدأ بـ 07 ويتكون من 11 رقم'; msg.style.display = 'block';
+      return;
+    }
+    if (!region) {
+      msg.className = 'msg error'; msg.textContent = 'الرجاء اختيار المنطقة'; msg.style.display = 'block';
       return;
     }
     if (!address) {
@@ -1451,7 +1478,7 @@
 
     fetch(API_URL + '/order', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customerName: name, phone: phone, address: address, notes: notes, items: items })
+      body: JSON.stringify({ customerName: name, phone: phone, region: region, address: address, notes: notes, items: items })
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
