@@ -106,6 +106,18 @@
     background:#fff;font-family:inherit;font-size:12px;color:var(--text-dim)}
 
   .status-msg{margin-top:16px;text-align:center;font-size:13px;color:var(--text-mute);padding:20px}
+  .trust-row{display:flex;gap:8px;margin:14px 0;}
+  .trust-item{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;
+    text-align:center;box-shadow:0 4px 12px -10px rgba(0,0,0,.15);color:var(--accent-dark);}
+  .trust-item svg{display:block;margin:0 auto 5px;}
+  .trust-item span{font-size:9px;font-weight:700;color:var(--text-dim);display:block;}
+  .rv-title{font-size:13px;font-weight:800;margin:18px 0 10px;display:flex;align-items:center;gap:6px;color:var(--accent-dark);}
+  .rv-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;}
+  .rv-card{flex:0 0 108px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 4px 12px -10px rgba(0,0,0,.15);cursor:pointer;}
+  .rv-img{width:100%;height:78px;object-fit:cover;background:var(--bg);}
+  .rv-name{font-size:10px;font-weight:700;padding:7px 8px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rv-price{font-size:10.5px;font-weight:800;color:var(--accent-dark);padding:0 8px 7px;}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
   .pcard{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
     box-shadow:0 10px 24px -16px rgba(124,92,255,.25);position:relative;cursor:pointer}
@@ -304,6 +316,29 @@
       </svg>
       <span class="filter-dot" id="filterDot"></span>
     </button>
+  </div>
+
+  <div class="trust-row">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect x="2" y="7" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 10h3l3 3v5h-6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7" cy="19" r="1.6" stroke="currentColor" stroke-width="1.5"/><circle cx="17.5" cy="19" r="1.6" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span>توصيل لكل بغداد</span>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.7"/><path d="M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span>الدفع عند الاستلام</span>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>فحص المنتج قبل الدفع</span>
+    </div>
+  </div>
+
+  <div id="recentlyViewedSection" style="display:none;">
+    <div class="rv-title">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      شاهدته مؤخرًا
+    </div>
+    <div class="rv-scroll" id="recentlyViewedList"></div>
   </div>
 
   <div class="filter-panel" id="filterPanel">
@@ -681,6 +716,7 @@
         renderCategories();
         applyFilters();
         openSharedProductIfAny();
+        renderRecentlyViewed();
       })
       .catch(function () { document.getElementById('statusMsg').textContent = 'تعذر الاتصال بالمتجر، حاول لاحقًا'; });
   }
@@ -799,6 +835,33 @@
     openProductDetail(productId);
   }
 
+  const RECENTLY_VIEWED_KEY = 'pipely_recently_viewed';
+
+  function saveRecentlyViewed_(product) {
+    try {
+      let list = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]');
+      list = list.filter(function (p) { return p.id !== product.id; });
+      list.unshift({ id: product.id, name: product.name, price: product.price, image: product.image || '' });
+      list = list.slice(0, 8);
+      localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(list));
+    } catch (e) { /* localStorage غير متاح — نتجاهل بصمت، ميزة غير حرجة */ }
+  }
+
+  function renderRecentlyViewed() {
+    const section = document.getElementById('recentlyViewedSection');
+    const box = document.getElementById('recentlyViewedList');
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]'); } catch (e) { list = []; }
+    if (list.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    box.innerHTML = list.map(function (p) {
+      const img = p.image ? '<img class="rv-img" src="' + p.image + '" alt="">' : '<div class="rv-img"></div>';
+      return '<div class="rv-card" onclick="openProductDetail(' + p.id + ')">' + img +
+        '<div class="rv-name">' + escapeHtml_(p.name) + '</div>' +
+        '<div class="rv-price">' + Number(p.price).toLocaleString() + ' د.ع</div></div>';
+    }).join('');
+  }
+
   function renderProducts(list) {
     const grid = document.getElementById('productsGrid');
     const items = list || products;
@@ -873,6 +936,8 @@
       body: JSON.stringify({ productId: id }),
     }).catch(function () {});
 
+    saveRecentlyViewed_(p);
+    renderRecentlyViewed();
     document.getElementById('pdName').textContent = p.name;
     document.getElementById('pdPrice').textContent = Number(p.price || 0).toLocaleString() + ' د.ع';
     document.getElementById('pdDesc').textContent = p.description || '';
