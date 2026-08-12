@@ -515,8 +515,14 @@
           <input type="tel" id="signupPhone" autocomplete="off" placeholder="07xxxxxxxxx" maxlength="11">
           <label for="signupPassword">كلمة مرور لحسابك</label>
           <div class="pw-field-wrap">
-            <input type="password" id="signupPassword" autocomplete="new-password" placeholder="4 أحرف على الأقل">
+            <input type="password" id="signupPassword" autocomplete="new-password" placeholder="10 أحرف على الأقل" oninput="updatePasswordStrength()">
             <span class="pw-eye" onclick="togglePasswordVisibility('signupPassword', this)"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span>
+          </div>
+          <div id="pwStrengthMeter" style="display:none;margin-top:6px;">
+            <div style="height:4px;background:var(--line);border-radius:4px;overflow:hidden;">
+              <div id="pwStrengthBar" style="height:100%;width:0%;border-radius:4px;transition:width .2s,background .2s;"></div>
+            </div>
+            <div id="pwStrengthLabel" style="font-size:10.5px;font-weight:700;margin-top:4px;"></div>
           </div>
           <p class="hint"><svg class="ic-inline" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> بعد تأكيد رمز واتساب مرة وحدة، تقدر تدخل بكلمة المرور دائمًا بدون رمز</p>
           <button class="submit-btn" onclick="requestSignupOTP()" id="requestOtpBtn">إنشاء حساب</button>
@@ -567,8 +573,14 @@
         </div>
         <label for="newPassword">كلمة المرور الجديدة</label>
         <div class="pw-field-wrap">
-          <input type="password" id="newPassword" autocomplete="new-password" placeholder="4 أحرف على الأقل">
+          <input type="password" id="newPassword" autocomplete="new-password" placeholder="10 أحرف على الأقل" oninput="updatePasswordStrength('newPassword','newPwStrengthMeter','newPwStrengthBar','newPwStrengthLabel')">
           <span class="pw-eye" onclick="togglePasswordVisibility('newPassword', this)"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span>
+        </div>
+        <div id="newPwStrengthMeter" style="display:none;margin-top:6px;">
+          <div style="height:4px;background:var(--line);border-radius:4px;overflow:hidden;">
+            <div id="newPwStrengthBar" style="height:100%;width:0%;border-radius:4px;transition:width .2s,background .2s;"></div>
+          </div>
+          <div id="newPwStrengthLabel" style="font-size:10.5px;font-weight:700;margin-top:4px;"></div>
         </div>
         <button class="submit-btn" onclick="confirmPasswordReset()">تأكيد كلمة المرور الجديدة</button>
       </div>
@@ -1157,8 +1169,8 @@
       msg.className = 'msg error'; msg.textContent = 'أكمل رمز التحقق (4 أرقام)'; msg.style.display = 'block';
       return;
     }
-    if (!newPassword || newPassword.length < 4) {
-      msg.className = 'msg error'; msg.textContent = 'كلمة المرور لازم تكون 4 أحرف على الأقل'; msg.style.display = 'block';
+    if (!newPassword || newPassword.length < 10) {
+      msg.className = 'msg error'; msg.textContent = 'كلمة المرور لازم تكون 10 أحرف على الأقل'; msg.style.display = 'block';
       return;
     }
 
@@ -1240,6 +1252,38 @@
       : '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg>';
   }
 
+  // مؤشر قوة كلمة المرور — مبني على "الطول" أساسًا (معيار NIST 2026
+  // العالمي الأحدث)، مو على إجبار رموز/أرقام محدّدة (ثبت إنها تشجّع
+  // أنماط متوقّعة زي "Password123!" أسهل بالتخمين، مو أصعب).
+  function passwordStrengthInfo_(pw) {
+    const len = pw.length;
+    if (len === 0) return null;
+    if (len < 10) return { pct: Math.max(10, (len / 10) * 33), color: 'var(--danger)', label: 'ضعيف — يحتاج 10 أحرف على الأقل' };
+    if (len < 14) return { pct: 60, color: 'var(--amber)', label: 'متوسط' };
+    if (len < 18) return { pct: 85, color: 'var(--green)', label: 'قوي' };
+    return { pct: 100, color: 'var(--green)', label: 'قوي جدًا' };
+  }
+
+  function updatePasswordStrength(inputId, meterId, barId, labelId) {
+    inputId = inputId || 'signupPassword';
+    meterId = meterId || 'pwStrengthMeter';
+    barId = barId || 'pwStrengthBar';
+    labelId = labelId || 'pwStrengthLabel';
+
+    const pw = document.getElementById(inputId).value;
+    const meter = document.getElementById(meterId);
+    const bar = document.getElementById(barId);
+    const label = document.getElementById(labelId);
+    const info = passwordStrengthInfo_(pw);
+
+    if (!info) { meter.style.display = 'none'; return; }
+    meter.style.display = 'block';
+    bar.style.width = info.pct + '%';
+    bar.style.background = info.color;
+    label.textContent = info.label;
+    label.style.color = info.color;
+  }
+
   function switchAuthTab(tab) {
     document.getElementById('signupPanel').style.display = (tab === 'signup') ? 'block' : 'none';
     document.getElementById('signinPanel').style.display = (tab === 'signin') ? 'block' : 'none';
@@ -1263,8 +1307,8 @@
       msg.className = 'msg error'; msg.textContent = 'أدخل رقم صحيح (07 + 11 رقم)'; msg.style.display = 'block';
       return;
     }
-    if (!password || password.length < 4) {
-      msg.className = 'msg error'; msg.textContent = 'كلمة المرور لازم تكون 4 أحرف على الأقل'; msg.style.display = 'block';
+    if (!password || password.length < 10) {
+      msg.className = 'msg error'; msg.textContent = 'كلمة المرور لازم تكون 10 أحرف على الأقل'; msg.style.display = 'block';
       return;
     }
 
